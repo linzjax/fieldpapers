@@ -1,0 +1,379 @@
+body {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+#container {
+	width: 100%;
+	top: 0;
+	left: 0;
+	padding: 0;
+	margin: 0;
+	position: relative;
+}
+
+#map { 
+	margin: 0;
+	padding: 0;
+	height: 100vh;
+	width: 100vw;
+}
+
+
+.leaflet-areaselect-shade {
+    position: absolute;
+    background: rgba(0,0,0, 0.4);
+}
+/*
+  All styles under 'atlases' path
+ */
+
+.atlases-activity ul {
+  margin-left: 40px;
+}
+.atlases-activity li p {
+  margin: 0;
+}
+.atlases-activity .details {
+  color: #aaa;
+  margin-left: 1.5rem;
+
+  -ms-word-break:   break-all;
+    word-break:       break-word;
+    word-wrap:        break-word;
+    -webkit-hyphens:  auto;
+       -moz-hyphens:  auto;
+            hyphens:  auto;
+}
+
+.leaflet-pagelayout-container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background: transparent;
+}
+
+.leaflet-pagelayout-container .page {
+  position: absolute;
+  border: 1px solid black;
+}
+  .leaflet-pagelayout-container .page.outer-top {
+    border-top-width: 3px;
+  }
+  .leaflet-pagelayout-container .page.outer-bottom {
+    border-bottom-width: 3px;
+  }
+  .leaflet-pagelayout-container .page.outer-left {
+    border-left-width: 3px;
+  }
+  .leaflet-pagelayout-container .page.outer-right {
+    border-right-width: 3px;
+  }
+
+  .leaflet-pagelayout-container .page.no-top {
+    border-top: 0;
+  }
+  .leaflet-pagelayout-container .page.no-bottom {
+    border-bottom: 0;
+  }
+  .leaflet-pagelayout-container .page.no-left {
+    border-left: 0;
+  }
+  .leaflet-pagelayout-container .page.no-right {
+    border-right: 0;
+  }
+
+.leaflet-pagelayout-container .page-link {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+  color: #000 !important;
+}
+
+.leaflet-pagelayout-container .page-link:hover {
+  background: transparent;
+  background: rgba(255,255,255,0.3);
+}
+
+.leaflet-pagelayout-container .page-label{
+  display: inline;
+  position: absolute;
+  padding: 2px 4px;
+  left: 50%;
+  top: 50%;
+  background: white;
+  background: rgba(255,255,255,0.7);
+  font-weight: bold;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.map-container {
+  position: relative;
+  overflow: hidden;
+}
+
+#map {
+  min-height: 300px;
+}
+
+#locator-map {
+  height: 140px;
+}
+
+#map.detail {
+  height: 500px;
+}
+
+#locator-map,
+#map.detail {
+  border: 1px solid black;
+}
+
+#locator-map {
+  border-bottom: 0;
+}
+
+.map-overlay {
+  position: absolute;
+  z-index: 2;
+  width: auto;
+}
+
+  .map-overlay.stacked {
+    width: 1px;
+  }
+
+  .map-overlay.top-left {
+    top: 0;
+    left: 0;
+  }
+
+  .map-overlay.top-right {
+    top: 0;
+    right: 0;
+  }
+
+  .map-overlay.bottom-right {
+    bottom: 0;
+    right: 0;
+  }
+
+  .map-overlay.bottom-left {
+    bottom: 0;
+    left: 0;
+  }
+
+  .map-overlay .overlay-item {
+    display: inline-block;
+    background: black;
+    padding: 1px 15px;
+    margin: 0;
+    color: white;
+    width: auto;
+    white-space: nowrap;
+  }
+    .map-overlay .overlay-item a {
+      color: #fff !important;
+    }
+
+    .overlay-item.page-number {
+      font-weight: 600;
+      font-size: 34px;
+    }
+
+  .map-overlay button,
+  .map-overlay a.button {
+    padding: 0 15px;
+    margin: 0;
+    background: black;
+    text-transform: none;
+    color: white;
+    white-space: nowrap;
+    font-weight: normal;
+    font-size: 1.5rem;
+    letter-spacing: 0;
+    text-decoration: underline;
+    border-radius: 0;
+    border: 0;
+  }
+  .map-overlay form {
+    display: inline-block;
+    margin: 0;
+  }
+
+#map.detail .leaflet-control-zoom {
+  top: 6.5rem;
+}
+
+#map.page-view .leaflet-control-zoom {
+  top: 9.5rem;
+}
+
+// markers
+.atlas-boundingbox {
+  stroke: #000;
+  stroke-width: 2;
+  stroke-opacity: 1;
+  fill: yellow;
+  fill-opacity: 0.4;
+}
+
+.atlas-boundingbox:hover {
+    fill: steelblue;
+}
+
+// Page composer tool
+.leaflet-areaselect-container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+}
+
+.leaflet-areaselect-shade {
+    position: absolute;
+    background: rgba(0,0,0, 0.3);
+}
+
+.leaflet-areaselect-handle {
+    position: absolute;
+    background: #fff;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    margin-left: -7px;
+    cursor: move;
+}
+
+.leaflet-areaselect-handle.drag-handle,
+.leaflet-areaselect-handle.scale-handle {
+    background-color: transparent;
+    background-repeat: no-repeat;
+    width: 46px;
+    height: 46px;
+    margin-top: -23px;
+    margin-left: -23px;
+}
+
+.leaflet-areaselect-handle.drag-handle {
+    background-image: url(asset-path('ui/button-move-atlas-off.png'));
+
+    &:hover {
+        background-image: url(asset-path('ui/button-move-atlas-on.png'));
+    }
+}
+
+.leaflet-areaselect-handle.scale-handle {
+    background-image: url(asset-path('ui/button-scale-atlas-off.png'));
+
+    &:hover,
+    .scaling & {
+        background-image: url(asset-path('ui/button-scale-atlas-on.png'));
+    }
+}
+
+
+.leaflet-areaselect-handle.page-tool{
+    background: transparent;
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
+.modifier-btn {
+    position: absolute;
+    background: #fff;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 800;
+    cursor: pointer;
+    border: 2px solid #000;
+
+    -webkit-transform-style: preserve-3d;
+       -moz-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+
+    &:hover {
+        background: #000;
+        color: #fff;
+    }
+}
+
+.modifier-btn > div {
+    display: block;
+    position: relative;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+}
+
+.leaflet-areaselect-handle .add-btn {
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    margin-left: -12px;
+    font-size: 19px;
+}
+
+.leaflet-areaselect-handle .subtract-btn {
+    margin-top: -28px;
+    margin-left: -9px;
+}
+
+.leaflet-areaselect-handle.col-modifier .subtract-btn {
+    margin-left: -28px;
+    margin-top: -9px;
+}
+
+.one-col .col-modifier .subtract-btn {
+    display:none;
+}
+.one-row .row-modifier .subtract-btn {
+    display:none;
+}
+
+.leaflet-areaselect-grid {
+    position: absolute;
+}
+
+.leaflet-areaselect-grid .page {
+    position: absolute;
+    width: 1px;
+    background: rgba(255,255,255,0);
+    border: 1px solid #000;
+}
+
+.leaflet-areaselect-grid .page.outer-top {
+  border-top-width: 3px;
+}
+.leaflet-areaselect-grid .page.outer-bottom {
+  border-bottom-width: 3px;
+}
+.leaflet-areaselect-grid .page.outer-left {
+  border-left-width: 3px;
+}
+.leaflet-areaselect-grid .page.outer-right {
+  border-right-width: 3px;
+}
+
+.leaflet-areaselect-grid .page.no-top {
+  border-top: 0;
+}
+.leaflet-areaselect-grid .page.no-bottom {
+  border-bottom: 0;
+}
+.leaflet-areaselect-grid .page.no-left {
+  border-left: 0;
+}
+.leaflet-areaselect-grid .page.no-right {
+  border-right: 0;
+}
