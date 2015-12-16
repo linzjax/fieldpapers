@@ -37,7 +37,7 @@ L.PageComposer = L.Class.extend({
 
     initialize: function(options) {
         L.Util.setOptions(this, options);
-        this.refs.page_aspect_ratio = this.refs.paper_aspect_ratios['letter']['portrait'];
+        this.refs.page_aspect_ratio = this.refs.paper_aspect_ratios[this.refs.paperSize][this.refs.pageOrientation];
         this._width = (this.options.pageHeight * this.refs.page_aspect_ratio) * this.refs.cols;
         this._height = this.options.pageHeight * this.refs.rows;
     },
@@ -208,6 +208,25 @@ L.PageComposer = L.Class.extend({
       this.fire("change");
     },
 
+    _updateToolDimensions: function() {
+      if (this.refs.cols !== this.refs.prevCols) {
+        var width = this.dimensions.width / this.refs.prevCols;
+        this.dimensions.width = width * this.refs.cols;
+        this.refs.prevCols = this.refs.cols;
+      }
+
+      if (this.refs.rows !== this.refs.prevRows) {
+        var height = this.dimensions.height / this.refs.prevRows;
+        this.dimensions.height = height * this.refs.rows;
+        this.refs.prevRows = this.refs.rows;
+      }
+
+      // re-calc bounds
+      this.bounds = this._getBoundsPinToNorthWest();
+      this._render();
+    },
+
+    //adds +/-
     _createPageModifiers: function() {
       // row
       this._rowModifier = L.DomUtil.create("div", "leaflet-areaselect-handle page-tool row-modifier", this._container);
@@ -227,11 +246,13 @@ L.PageComposer = L.Class.extend({
       //this._minusCol.innerHTML = "&#8722;";
       this._createInnerText(this._minusCol, "&#8722;");
 
+      var gridModifiers = document.getElementsByClassName("math");
+      //console.log(thing[0]);
 
-      L.DomEvent.addListener(this._addRow, "click", this._onAddRow, this);
-      L.DomEvent.addListener(this._minusRow, "click", this._onSubtractRow, this);
-      L.DomEvent.addListener(this._addCol, "click", this._onAddCol, this);
-      L.DomEvent.addListener(this._minusCol, "click", this._onSubtractCol, this);
+      L.DomEvent.addListener(gridModifiers[2], "click", this._onAddRow, this);
+      L.DomEvent.addListener(gridModifiers[0], "click", this._onSubtractRow, this);
+      L.DomEvent.addListener(gridModifiers[5], "click", this._onAddCol, this);
+      L.DomEvent.addListener(gridModifiers[3], "click", this._onSubtractCol, this);
     },
 
     _createInnerText: function(container, text) {
