@@ -105,6 +105,8 @@ L.PageComposer = L.Class.extend({
         this.map.off("moveend", this._onMapChange);
         this.map.off("zoomend", this._onMapChange);
         this.map.off("resize", this._onMapResize);
+
+        if (this._scaleHandle) L.DomEvent.removeListener(this._scaleHandle, "mousedown", this._onScaleMouseDown);
         
         this._container.parentNode.removeChild(this._container);
     },
@@ -190,7 +192,7 @@ L.PageComposer = L.Class.extend({
         //this._createPageModifiers();
 
         // add scale & drag btns
-        //this._createContainerModifiers();
+        this._createContainerModifiers();
 
         //
         this._calculateInitialPositions();
@@ -203,6 +205,100 @@ L.PageComposer = L.Class.extend({
         this.map.on("resize",   this._onMapReset, this);
 
         this.fire("change");
+    },
+
+    // Adds the scale & drag buttons
+    _createContainerModifiers: function() {
+      // scale button
+      this._setScaleHandler(L.DomUtil.create("div", "leaflet-areaselect-handle scale-handle", this._container), -1, -1);
+
+      // drag button
+      // if (typeof L.DraggableAny === 'function') {
+      //   this._dragHandle = L.DomUtil.create("div", "leaflet-areaselect-handle drag-handle", this._container);
+      //   var draggable = new L.DraggableAny(this._dragHandle, null, this._getPos, this._setPos, this);
+      //   draggable.enable();
+      // }
+    },
+
+    // Handler for when the tool is scaled
+    _setScaleHandler: function(handle, xMod, yMod) {
+      if (this._scaleHandle) return;
+      xMod = xMod || 1;
+      yMod = yMod || 1;
+
+      this._scaleHandle = handle;
+
+      this._scaleProps = {
+        x: xMod,
+        y: yMod,
+        curX: 0,
+        curY: 0,
+        maxHeight: 0,
+        ratio: 1
+      };
+
+      L.DomEvent.addListener(this._scaleHandle, "mousedown", this._onScaleMouseDown, this);
+    },
+
+    _onScaleMouseMove: function(event) {
+      var width = this.dimensions.width,
+          height = this.dimensions.height;
+
+      if (this.options.keepAspectRatio) {
+        //var maxHeight = (height >= width ? size.y : size.y * (1/ratio) ) - 30;
+        height += (this._scaleProps.curY - event.originalEvent.pageY) * 2 * this._scaleProps.y;
+        height = Math.max(this.options.minHeight, height);
+        height = Math.min(this._scaleProps.maxHeight, height);
+        width = height * this._scaleProps.ratio;
+
+      } else {
+        this._width += (this._scaleProps.curX - event.originalEvent.pageX) * 2 * this._scaleProps.x;
+        this._height += (this._scaleProps.curY - event.originalEvent.pageY) * 2 * this._scaleProps.y;
+        this._width = Math.max(this.options.paddingToEdge, this._width);
+        this._height = Math.max(this.options.paddingToEdge, this._height);
+        this._width = Math.min(size.x-this.options.paddingToEdge, this._width);
+        this._height = Math.min(size.y-this.options.paddingToEdge, this._height);
+      }
+
+      this.dimensions.width = width;
+      this.dimensions.height = height;
+
+      this._scaleProps.curX = event.originalEvent.pageX;
+      this._scaleProps.curY = event.originalEvent.pageY;
+
+      this.bounds = this._getBoundsPinToNorthWest();
+      this._setDimensions();
+      this._render();
+    },
+
+    _onScaleMouseDown: function(event) {
+      //event.stopPropagation();
+      L.DomEvent.stopPropagation(event);
+      L.DomEvent.removeListener(this._scaleHandle, "mousedown", this._onScaleMouseDown);
+
+      this._scaleProps.curX = event.pageX;
+      this._scaleProps.curY = event.pageY;
+      this._scaleProps.ratio = this.dimensions.width / this.dimensions.height;
+      var size = this.map.getSize();
+      L.DomUtil.disableTextSelection();
+      L.DomUtil.addClass(this._container, 'scaling');
+
+      var nwPt = this.map.latLngToContainerPoint(this.bounds.getNorthWest());
+      var maxHeightY = size.y - this.map.latLngToContainerPoint(this.bounds.getNorthWest()).y - this.options.paddingToEdge;
+      var maxHeightX = (size.x - this.map.latLngToContainerPoint(this.bounds.getNorthWest()).x - this.options.paddingToEdge) * 1/this._scaleProps.ratio;
+      this._scaleProps.maxHeight = Math.min(maxHeightY, maxHeightX);
+
+      L.DomEvent.addListener(this.map, "mousemove", this._onScaleMouseMove, this);
+      L.DomEvent.addListener(this.map, "mouseup", this._onScaleMouseUp, this);
+    },
+
+    _onScaleMouseUp: function(event) {
+      L.DomEvent.removeListener(this.map, "mouseup", this._onScaleMouseUp);
+      L.DomEvent.removeListener(this.map, "mousemove", this._onScaleMouseMove);
+      L.DomEvent.addListener(this._scaleHandle, "mousedown", this._onScaleMouseDown, this);
+      L.DomUtil.enableTextSelection();
+      L.DomUtil.removeClass(this._container, 'scaling');
+      this.fire("change");
     },
     
     _setUpHandlerEvents: function(handle, xMod, yMod) {
@@ -338,7 +434,7 @@ L.PageComposer = L.Class.extend({
 
       // position handles
       // this._updateGridElement(this._dragHandle, {left:nw.x, top:nw.y });
-      // this._updateGridElement(this._scaleHandle, {left:nw.x + width, top:nw.y + height});
+      this._updateGridElement(this._scaleHandle, {left:nw.x + width, top:nw.y + height});
 
       // this._updateGridElement(this._rowModifier, {left:nw.x + (width / 2), top:nw.y + height});
       // this._updateGridElement(this._colModifier, {left:nw.x + width, top:nw.y + (height/2)});
