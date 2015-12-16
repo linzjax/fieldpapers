@@ -277,7 +277,7 @@ body {
 }
 
 
-.leaflet-areaselect-handle.page-tool{
+.leaflet-areaselect-handle .page-tool{
     background: transparent;
     width: auto;
     height: auto;
@@ -329,7 +329,7 @@ body {
     margin-left: -9px;
 }
 
-.leaflet-areaselect-handle.col-modifier .subtract-btn {
+.leaflet-areaselect-handle .col-modifier .subtract-btn {
     margin-left: -28px;
     margin-top: -9px;
 }

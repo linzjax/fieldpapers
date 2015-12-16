@@ -103,7 +103,7 @@ L.PageComposer = L.Class.extend({
     remove: function() {
         //removed "move"
         this.map.off("moveend", this._onMapChange);
-        this.map.off("zoomend", this._onMapChange);
+        //this.map.off("zoomend", this._onMapChange);
         this.map.off("resize", this._onMapResize);
 
         if (this._scaleHandle) L.DomEvent.removeListener(this._scaleHandle, "mousedown", this._onScaleMouseDown);
@@ -173,6 +173,71 @@ L.PageComposer = L.Class.extend({
         }
       }
     },
+
+    _onAddRow: function(evt) {
+      evt.stopPropagation();
+      this.refs.rows++;
+      this._updatePages();
+    },
+
+    _onSubtractRow: function(evt) {
+      evt.stopPropagation();
+      if (this.refs.rows === 1) return;
+      this.refs.rows--;
+      this._updatePages();
+    },
+
+    _onAddCol: function(evt) {
+      evt.stopPropagation();
+      this.refs.cols++;
+      this._updatePages();
+    },
+
+    _onSubtractCol: function(evt) {
+      evt.stopPropagation();
+      if (this.refs.cols === 1) return;
+      this.refs.cols--;
+      this._updatePages();
+    },
+
+    _updatePages: function() {
+      this._setDimensions();
+      this._updateToolDimensions();
+      this._createPages();
+
+      this.fire("change");
+    },
+
+    _createPageModifiers: function() {
+      // row
+      this._rowModifier = L.DomUtil.create("div", "leaflet-areaselect-handle page-tool row-modifier", this._container);
+      this._addRow = L.DomUtil.create("div", "modifier-btn add-btn", this._rowModifier);
+      //this._addRow.innerHTML = "+";
+      this._createInnerText(this._addRow, "+");
+      this._minusRow = L.DomUtil.create("div", "modifier-btn subtract-btn", this._rowModifier);
+      //this._minusRow.innerHTML = "&#8722;";
+      this._createInnerText(this._minusRow, "&#8722;");
+
+      // col
+      this._colModifier = L.DomUtil.create("div", "leaflet-areaselect-handle page-tool col-modifier", this._container);
+      this._addCol = L.DomUtil.create("div", "modifier-btn add-btn", this._colModifier);
+      //this._addCol.innerHTML = "+";
+      this._createInnerText(this._addCol, "+");
+      this._minusCol = L.DomUtil.create("div", "modifier-btn subtract-btn", this._colModifier);
+      //this._minusCol.innerHTML = "&#8722;";
+      this._createInnerText(this._minusCol, "&#8722;");
+
+
+      L.DomEvent.addListener(this._addRow, "click", this._onAddRow, this);
+      L.DomEvent.addListener(this._minusRow, "click", this._onSubtractRow, this);
+      L.DomEvent.addListener(this._addCol, "click", this._onAddCol, this);
+      L.DomEvent.addListener(this._minusCol, "click", this._onSubtractCol, this);
+    },
+
+    _createInnerText: function(container, text) {
+      var c = L.DomUtil.create("div", "", container);
+      c.innerHTML = text;
+    },
     
     _createElements: function() {
         if (!!this._container)
@@ -189,7 +254,7 @@ L.PageComposer = L.Class.extend({
         this._rightShade =  L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
 
         // add/remove page btns
-        //this._createPageModifiers();
+        this._createPageModifiers();
 
         // add scale & drag btns
         this._createContainerModifiers();
@@ -200,7 +265,7 @@ L.PageComposer = L.Class.extend({
         this._createPages();
 
         //this.map.on("move",     this._onMapMovement, this);
-        //this.map.on("moveend",  this._onMapMovement, this);
+        this.map.on("moveend",  this._onMapMovement, this);
         this.map.on("viewreset",  this._onMapReset, this);
         this.map.on("resize",   this._onMapReset, this);
 
@@ -218,6 +283,22 @@ L.PageComposer = L.Class.extend({
       //   var draggable = new L.DraggableAny(this._dragHandle, null, this._getPos, this._setPos, this);
       //   draggable.enable();
       // }
+    },
+
+    _onMapMovement: function(){
+        this._updateNWPosition(this.dimensions.nw);
+    },
+
+    _updateNWPosition: function(pos) {
+      this.nwPosition = pos;
+      this.nwLocation = this.map.containerPointToLatLng(pos);
+      this.bounds = this._getBoundsPinToNorthWest();
+    },
+
+    _onMapReset: function() {
+      this.refs.zoomScale = 1 / this.map.getZoomScale(this.refs.startZoom);
+      //this._render();
+      this.fire("change");
     },
 
     // Handler for when the tool is scaled
@@ -349,7 +430,7 @@ L.PageComposer = L.Class.extend({
     },
     
     _onMapResize: function() {
-        this._render();
+        //this._render();
     },
     
     _onMapChange: function() {
