@@ -1,52 +1,247 @@
 body {
-	width: 100%;
-	padding: 0;
-	margin: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font: 11px BlinkMacSystemFont;
+}
+
+form {
+  margin-bottom: 20px;
 }
 
 #container {
-	width: 100%;
-	top: 0;
-	left: 0;
-	padding: 0;
-	margin: 0;
-	position: relative;
+  width: 100%;
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  position: relative;
 }
+
+
+
+
+/***************
+SIDE MENU
+**************/
 
 #menu {
-	margin: 0;
-	padding: 0;
-	border: 2px solid black;
-	width: 200px;
-	height: 100vh;
-	top: 0;
-	left: 0;
-	position: absolute;
-	z-index: 999999;
-	text-align: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow-y: auto;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+
+  width: 200px;
+  height: 100vh;
+
+  margin: 0;
+  padding: 10px;
+  padding-right: 0;
+
+  border: 2px solid #eee;
+  border-top: none;
 }
 
-#menu .math {
-	padding: 10px;
-	border: solid black 2px;
-	width: 20px;
-	margin: 0 auto;
-	display: inline-block;
+#menu .field-papers-logo img {
+  width: 90%;
+  margin-top: 10px;
 }
+
+#menu h3 {
+  padding-top: 5px;
+  border-top: 2px solid #eee;
+}
+
+#menu .map-location-search {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+  height: 25px;
+}
+
+#menu input[type=text] {
+  display: inline-block;
+  width: 55%;
+  padding: 5px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  cursor: pointer;
+  color: #444;
+
+  -webkit-appearance: none;
+}
+
+#menu input[type=submit] {
+    display: inline-block;
+    width: 30%;
+    /*height: 25px;*/
+    padding: 5px;
+    color: #555555;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    cursor: pointer;
+}
+
+#menu select {
+  height: 25px;
+  padding: 6px 10px;
+  background-color: #fff;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+#menu .col-row-modifiers {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  align-items: left;
+  margin-bottom: 5px;
+}
+
+#menu .grid-modifier-group {
+  height: 20px;
+  width: 20%;
+  /*padding: 6px 10px;*/
+  font-size: 13px;
+  padding: 5px;
+  background-color: #fff;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  box-shadow: none;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  flex-align: center;
+  cursor: pointer;
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;  
+  user-select: none;
+}
+
+#menu .number {
+  flex-grow: 1;
+  text-align: center;
+}
+
+
+#menu .grid-modifier-arrows .plus{
+  margin-bottom: 3px;
+}
+
+#menu .up-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: solid 8px black;
+}
+
+#menu .down-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: solid 8px black;
+}
+
+#menu .page-layout-label,
+  #menu .col-row-modifiers-label,
+  #menu .basemap-selector-label,
+  #menu .atlas-information .title,
+  #menu .atlas-information .notes {
+    font-weight: 600;
+  }
+
+#menu .basemap-selector-label {
+  margin-top: 10px;
+}
+
+#menu .atlas-information fieldset {
+  border: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+#menu .atlas-information textarea {
+  display: inline-block;
+  width: 86%;
+  max-width: 86%;
+  padding: 5px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  background-color: transparent;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  color: #444;
+
+  -webkit-appearance: none;
+}
+
+#menu .atlas-information .final-step {
+  width: 70%;
+  margin-left: 10%;
+  font-size: 15px;
+  background-color: #444;
+  color: #bbb;
+  border-color: 1px solid #d1d1d1;
+  margin-top: 10px;
+}
+
+#menu .atlas-information .final-step:hover {
+  color: #fff;
+}
+
+
+
+
+
+
+
+
 
 #map { 
-	margin: 0;
-	margin-left: 200px;
-	padding: 0;
-	height: 100vh;
-	width: calc(100vw - 200px);
+  margin: 0;
+  margin-left: 200px;
+  padding: 0;
+  height: 100vh;
+  width: calc(100vw - 200px);
 }
 
 
-.leaflet-areaselect-shade {
-    position: absolute;
-    background: rgba(0,0,0, 0.4);
-}
+
+
+
+
+
+
+
+
+
+
+
+
 /*
   All styles under 'atlases' path
  */
@@ -271,31 +466,13 @@ body {
     cursor: move;
 }
 
-.leaflet-areaselect-handle.drag-handle,
 .leaflet-areaselect-handle.scale-handle {
-    background-color: transparent;
-    background-repeat: no-repeat;
-    width: 46px;
-    height: 46px;
-    margin-top: -23px;
-    margin-left: -23px;
-}
-
-.leaflet-areaselect-handle.drag-handle {
-    background-image: url(asset-path('ui/button-move-atlas-off.png'));
-
-    &:hover {
-        background-image: url(asset-path('ui/button-move-atlas-on.png'));
-    }
-}
-
-.leaflet-areaselect-handle.scale-handle {
-    background-image: url(asset-path('ui/button-scale-atlas-off.png'));
-
-    &:hover,
-    .scaling & {
-        background-image: url(asset-path('ui/button-scale-atlas-on.png'));
-    }
+    background-color: white;
+    border: solid 2px black;
+    width: 10px;
+    height: 10px;
+/*    margin-top: 23px;
+    margin-left: 23px;*/
 }
 
 
@@ -336,31 +513,6 @@ body {
     -webkit-transform: translateY(-50%);
         -ms-transform: translateY(-50%);
             transform: translateY(-50%);
-}
-
-.leaflet-areaselect-handle .add-btn {
-    width: 24px;
-    height: 24px;
-    margin-top: -12px;
-    margin-left: -12px;
-    font-size: 19px;
-}
-
-.leaflet-areaselect-handle .subtract-btn {
-    margin-top: -28px;
-    margin-left: -9px;
-}
-
-.leaflet-areaselect-handle .col-modifier .subtract-btn {
-    margin-left: -28px;
-    margin-top: -9px;
-}
-
-.one-col .col-modifier .subtract-btn {
-    display:none;
-}
-.one-row .row-modifier .subtract-btn {
-    display:none;
 }
 
 .leaflet-areaselect-grid {

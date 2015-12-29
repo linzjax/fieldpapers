@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
 <head>
-	<title>Leaflet Practice</title>
+	<title>Field Papers</title>
+  <meta charset="utf-8">
 
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" /> 
 	<link href='https://api.mapbox.com/mapbox.js/v2.2.3/mapbox.css' rel='stylesheet' />
@@ -11,12 +12,94 @@
 <body>
 	<div id="container">
 		<div id="menu">
-			<h2>Testing</h2>
-			<p>Row</p>
-			<div class="math minus">-</div><div class="math number">2</div><div class="math plus">+</div>
-			<p>Column</p>
-			<div class="math minus">-</div><div class="math number">2</div><div class="math plus">+</div>
-		</div>
+      <div class="field-papers-logo">
+  		  <img src="/public/img/icon.png">
+      </div>
+
+      <h3>Atlas Navigation</h3>
+			<form id="map-location-search">
+  			<label class="item item-input">
+  			  <i class="icon ion-search placeholder-icon"></i>
+  			  <input class="map-location-search-box" type="text" name="searchBox" placeholder="Jump to a location" value="">
+  			  <input class="map-location-search-button" type="submit" value="Search">
+  			</label>
+			</form>
+
+      <div class="page-layout-label">Paper Size</div>
+      <form id="page-layout">
+        <select name="page-aspect-ratio">
+          <option value="landscape">Landscape</option>
+          <option value="portrait">Portrait</option>
+        </select>
+
+        <select name="page-scale">
+          <option value="letter">Letter</option>
+          <option value="a3">A3</option>
+          <option value="a4">A4</option>
+        </select>
+      </form>
+
+      <!-- Change this into up and down arrows -->
+      <div class="col-row-modifiers">
+          <div class="col-row-modifiers-label">Row</div>
+          
+        <div class="grid-modifier-group">
+          <div class="grid-modifier number">1</div>
+          <div class="grid-modifier-arrows">
+            <div class="grid-modifier plus">
+              <div class="up-arrow"></div>
+            </div>
+            <div class="grid-modifier minus">
+              <div class="down-arrow"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-row-modifiers">
+          <div class="col-row-modifiers-label">Column</div>
+        <div class="grid-modifier-group">
+    			<div class="grid-modifier minus">-</div><div class="grid-modifier number">2</div><div class="grid-modifier plus">+</div>
+        </div>
+    	</div>
+
+      <div class="basemap-selector-label">Basemap</div>
+      <form id="basemap-selector">
+        <select name="baselayer">
+          <option value="openstreetmap">OpenStreetMap</option>
+          <option value="blackandwhite">Black & White</option>
+          <option value="satellite-labels">Satellite + Labels</option>
+          <option value="satellite-only">Satellite Only</option>
+          <option value="humanitarian">Humanitarian</option>
+          <option value="humanitarian-nepal">Humanitarian-Nepal</option>
+          <option value="mapbox-satellite">Mapbox Satellite</option>
+          <option value="opencyclemap">OpenCycleMap</option>
+        </select>
+      </form>
+
+
+      <div class="atlas-information">
+        <h3>Atlas Information</h3>
+        <form id="printing-information">
+          <label class="title">Title <br />
+            <input type="text" placeholder="Name of the atlas" value="" />
+          </label>
+          <br />
+          <fieldset>
+              <input type="radio" name="notes" value="Map-Only" />Map Only<br />
+              <input type="radio" name="notes" value="Map-Notes" checked/>Map + Notes<br />
+          </fieldset>
+          <label class="notes">Notes<br />
+            <textarea placeholder="Notes to be included" value="" cols="20" rows="5" wrap="hard" ></textarea>
+          </label>
+          <fieldset>
+            <input type="checkbox" name="private" value="Private" />Private Map<br />
+            <input type="checkbox" name="adv-grid" value="UTMGrid" />UTM Grid<br />
+            <input type="checkbox" name="adv-grid" value="GADMOverlay" />GADM Overlay<br />
+          </fieldset>
+          <input type="submit" class="final-step" value="Download">
+        </form>
+      </div>
+    </div>
 		<div id="map" class="leaflet-pagelayout-container leaflet-fade-anim">
 		</div>
 	</div>

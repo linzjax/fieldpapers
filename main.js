@@ -68,18 +68,53 @@ L.PageComposer = L.Class.extend({
         return new L.LatLngBounds(sw, ne);
     },
 
-    //never called
-    _getBoundsPinToNorthWest: function() {
+    _setOrientation: function(x) {
+
+      if (this.refs.paper_aspect_ratios[this.refs.paperSize][x] &&
+          this.refs.page_aspect_ratio !== this.refs.paper_aspect_ratios[this.refs.paperSize][x]) {
+
+        this.refs.pageOrientation = x;
+        this.refs.page_aspect_ratio = this.refs.paper_aspect_ratios[this.refs.paperSize][x];
+
+        this._updateAspectRatio();
+
+        // if the flop is outside the map bounds, contain it.
+        var mapBds = this.map.getBounds();
+        if(!mapBds.contains(this.bounds)) {
+          this.map.fitBounds(this.bounds, {animate: false});
+        }
+
+        this.fire("change");
+      }
+
+      return this;
+    },
+
+    _setPaperSize: function(x) {
+      if (x === this.refs.paperSize || !this.refs.paper_aspect_ratios[x]) return this;
+      this.refs.paperSize = x;
+      this.refs.page_aspect_ratio = this.refs.paper_aspect_ratios[this.refs.paperSize][this.refs.pageOrientation];
+
+      this._updateScale();
+      // if the new size is outside the map bounds, contain it.
+      var mapBds = this.map.getBounds();
+      if(!mapBds.contains(this.bounds)) {
+        this.map.fitBounds(this.bounds, {animate: false});
+      }
+
+      this.fire("change");
+      return this;
+    },
+
+    _getBoundsPinToCenter: function() {
       var size = this.map.getSize();
       var topRight = new L.Point();
       var bottomLeft = new L.Point();
 
-      var nwPoint = this.map.latLngToContainerPoint(this.nwLocation);
-
-      topRight.y = nwPoint.y;
-      bottomLeft.y = nwPoint.y + this.dimensions.height;
-      bottomLeft.x = nwPoint.x;
-      topRight.x = nwPoint.x + this.dimensions.width;
+      bottomLeft.x = Math.round((size.x - this.dimensions.width) / 2);
+      topRight.y = Math.round((size.y - this.dimensions.height) / 2);
+      topRight.x = size.x - bottomLeft.x;
+      bottomLeft.y = size.y - topRight.y;
 
       var sw = this.map.containerPointToLatLng(bottomLeft);
       var ne = this.map.containerPointToLatLng(topRight);
@@ -118,7 +153,6 @@ L.PageComposer = L.Class.extend({
       div.style.top = y + "%";
       div.style.height = h + "%";
       div.style.width = w + "%";
-      console.log(div);
       return div;
     },
 
@@ -209,55 +243,81 @@ L.PageComposer = L.Class.extend({
     },
 
     _updateToolDimensions: function() {
+      var size = this.map.getSize();
+      var count = document.getElementsByClassName("number");
+
       if (this.refs.cols !== this.refs.prevCols) {
         var width = this.dimensions.width / this.refs.prevCols;
         this.dimensions.width = width * this.refs.cols;
+
+        if (this.dimensions.width > size.x - 40) {
+          this.dimensions.width = size.x - 40;
+          this.dimensions.height = ((this.dimensions.width / this.refs.cols) / this.refs.page_aspect_ratio) * this.refs.rows;
+        }
+
         this.refs.prevCols = this.refs.cols;
+        count[1].textContent = this.refs.cols;
       }
 
       if (this.refs.rows !== this.refs.prevRows) {
         var height = this.dimensions.height / this.refs.prevRows;
         this.dimensions.height = height * this.refs.rows;
+
+        if (this.dimensions.height > size.y - 40) {
+          this.dimensions.height = size.y - 40;
+          this.dimensions.width = ((this.dimensions.height / this.refs.rows) * this.refs.page_aspect_ratio) * this.refs.cols;
+        }
+
         this.refs.prevRows = this.refs.rows;
+        count[0].textContent = this.refs.rows;
       }
 
       // re-calc bounds
-      this.bounds = this._getBoundsPinToNorthWest();
+      this.bounds = this._getBoundsPinToCenter();
+      this._render();
+    },
+
+    _updateAspectRatio: function(){
+      //switch from landscape to portrait
+      this.dimensions.height = this.dimensions.cellWidth * this.refs.rows;
+      this.dimensions.width = this.dimensions.cellHeight * this.refs.cols;
+
+      // re-calc bounds
+      this.bounds = this._getBoundsPinToCenter();
+      this._render();
+    },
+
+    _updateScale: function(){
+      //switch between letter/a3/a4
+      var scale = this.refs.paper_aspect_ratios[this.refs.paperSize].scale;
+
+      if (scale > this.refs.toolScale) {
+        this.dimensions.width = this.dimensions.width * scale;
+        this.refs.toolScale = scale;
+      } else if (scale < this.refs.toolScale) {
+        this.dimensions.width = this.dimensions.width / this.refs.toolScale;
+        this.refs.toolScale = scale;
+      }
+
+      this.dimensions.height = ((this.dimensions.width / this.refs.cols) / this.refs.page_aspect_ratio) * this.refs.rows;
+
+      // re-calc bounds
+      this.bounds = this._getBoundsPinToCenter();
       this._render();
     },
 
     //adds +/-
     _createPageModifiers: function() {
-      // row
-      this._rowModifier = L.DomUtil.create("div", "leaflet-areaselect-handle page-tool row-modifier", this._container);
-      this._addRow = L.DomUtil.create("div", "modifier-btn add-btn", this._rowModifier);
-      //this._addRow.innerHTML = "+";
-      this._createInnerText(this._addRow, "+");
-      this._minusRow = L.DomUtil.create("div", "modifier-btn subtract-btn", this._rowModifier);
-      //this._minusRow.innerHTML = "&#8722;";
-      this._createInnerText(this._minusRow, "&#8722;");
+      var gridModifiers = document.getElementsByClassName("grid-modifier");
+      this._addRow = gridModifiers[1];
+      this._minusRow = gridModifiers[2];
+      this._addCol = gridModifiers[5];
+      this._subCol = gridModifiers[3];
 
-      // col
-      this._colModifier = L.DomUtil.create("div", "leaflet-areaselect-handle page-tool col-modifier", this._container);
-      this._addCol = L.DomUtil.create("div", "modifier-btn add-btn", this._colModifier);
-      //this._addCol.innerHTML = "+";
-      this._createInnerText(this._addCol, "+");
-      this._minusCol = L.DomUtil.create("div", "modifier-btn subtract-btn", this._colModifier);
-      //this._minusCol.innerHTML = "&#8722;";
-      this._createInnerText(this._minusCol, "&#8722;");
-
-      var gridModifiers = document.getElementsByClassName("math");
-      //console.log(thing[0]);
-
-      L.DomEvent.addListener(gridModifiers[2], "click", this._onAddRow, this);
-      L.DomEvent.addListener(gridModifiers[0], "click", this._onSubtractRow, this);
-      L.DomEvent.addListener(gridModifiers[5], "click", this._onAddCol, this);
-      L.DomEvent.addListener(gridModifiers[3], "click", this._onSubtractCol, this);
-    },
-
-    _createInnerText: function(container, text) {
-      var c = L.DomUtil.create("div", "", container);
-      c.innerHTML = text;
+      L.DomEvent.addListener(this._addRow, "click", this._onAddRow, this);
+      L.DomEvent.addListener(this._minusRow, "click", this._onSubtractRow, this);
+      L.DomEvent.addListener(this._addCol, "click", this._onAddCol, this);
+      L.DomEvent.addListener(this._subCol, "click", this._onSubtractCol, this);
     },
     
     _createElements: function() {
@@ -269,10 +329,10 @@ L.PageComposer = L.Class.extend({
         this._grid =        L.DomUtil.create("div", "leaflet-areaselect-grid", this._container);
 
         // shade layers
-        this._topShade =    L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
-        this._bottomShade = L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
-        this._leftShade =   L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
-        this._rightShade =  L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
+        // this._topShade =    L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
+        // this._bottomShade = L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
+        // this._leftShade =   L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
+        // this._rightShade =  L.DomUtil.create("div", "leaflet-areaselect-shade", this._container);
 
         // add/remove page btns
         this._createPageModifiers();
@@ -284,6 +344,9 @@ L.PageComposer = L.Class.extend({
         this._calculateInitialPositions();
         this._setDimensions();
         this._createPages();
+        this._onSearch();
+        this._onReorientation();
+        this._onPaperSizeChange();
 
         //this.map.on("move",     this._onMapMovement, this);
         this.map.on("moveend",  this._onMapMovement, this);
@@ -293,32 +356,18 @@ L.PageComposer = L.Class.extend({
         this.fire("change");
     },
 
-    // Adds the scale & drag buttons
+    // Adds the scale button
     _createContainerModifiers: function() {
       // scale button
       this._setScaleHandler(L.DomUtil.create("div", "leaflet-areaselect-handle scale-handle", this._container), -1, -1);
-
-      // drag button
-      // if (typeof L.DraggableAny === 'function') {
-      //   this._dragHandle = L.DomUtil.create("div", "leaflet-areaselect-handle drag-handle", this._container);
-      //   var draggable = new L.DraggableAny(this._dragHandle, null, this._getPos, this._setPos, this);
-      //   draggable.enable();
-      // }
     },
 
     _onMapMovement: function(){
-        this._updateNWPosition(this.dimensions.nw);
+        this.bounds = this._getBoundsPinToCenter();
     },
 
-    _updateNWPosition: function(pos) {
-      this.nwPosition = pos;
-      this.nwLocation = this.map.containerPointToLatLng(pos);
-      this.bounds = this._getBoundsPinToNorthWest();
-    },
-
+    //affected zoom?
     _onMapReset: function() {
-      this.refs.zoomScale = 1 / this.map.getZoomScale(this.refs.startZoom);
-      //this._render();
       this.fire("change");
     },
 
@@ -368,7 +417,7 @@ L.PageComposer = L.Class.extend({
       this._scaleProps.curX = event.originalEvent.pageX;
       this._scaleProps.curY = event.originalEvent.pageY;
 
-      this.bounds = this._getBoundsPinToNorthWest();
+      this.bounds = this._getBoundsPinToCenter();
       this._setDimensions();
       this._render();
     },
@@ -385,10 +434,14 @@ L.PageComposer = L.Class.extend({
       L.DomUtil.disableTextSelection();
       L.DomUtil.addClass(this._container, 'scaling');
 
-      var nwPt = this.map.latLngToContainerPoint(this.bounds.getNorthWest());
-      var maxHeightY = size.y - this.map.latLngToContainerPoint(this.bounds.getNorthWest()).y - this.options.paddingToEdge;
-      var maxHeightX = (size.x - this.map.latLngToContainerPoint(this.bounds.getNorthWest()).x - this.options.paddingToEdge) * 1/this._scaleProps.ratio;
-      this._scaleProps.maxHeight = Math.min(maxHeightY, maxHeightX);
+
+      if (this.dimensions.width > this.dimensions.height){
+        var ratio = this.dimensions.width / this.dimensions.height;
+        var maxHeightY = (size.x / ratio) - 20;
+        this._scaleProps.maxHeight = maxHeightY;
+      } else {
+        this._scaleProps.maxHeight = size.y - 20;
+      }
 
       L.DomEvent.addListener(this.map, "mousemove", this._onScaleMouseMove, this);
       L.DomEvent.addListener(this.map, "mouseup", this._onScaleMouseUp, this);
@@ -403,51 +456,53 @@ L.PageComposer = L.Class.extend({
       this.fire("change");
     },
     
-    _setUpHandlerEvents: function(handle, xMod, yMod) {
-        xMod = xMod || 1;
-        yMod = yMod || 1;
-        
-        var self = this;
-        function onMouseDown(event) {
-            event.stopPropagation();
-            L.DomEvent.removeListener(this, "mousedown", onMouseDown);
-            var curX = event.pageX;
-            var curY = event.pageY;
-            var ratio = self._width / self._height;
-            var size = self.map.getSize();
-            
-            function onMouseMove(event) {
-                if (self.options.keepAspectRatio) {
-                    var maxHeight = (self._height >= self._width ? size.y : size.y * (1/ratio) ) - 30;
-                    self._height += (curY - event.originalEvent.pageY) * 2 * yMod;
-                    self._height = Math.max(30, self._height);
-                    self._height = Math.min(maxHeight, self._height);
-                    self._width = self._height * ratio;
-                } else {
-                    self._width += (curX - event.originalEvent.pageX) * 2 * xMod;
-                    self._height += (curY - event.originalEvent.pageY) * 2 * yMod;
-                    self._width = Math.max(30, self._width);
-                    self._height = Math.max(30, self._height);
-                    self._width = Math.min(size.x-30, self._width);
-                    self._height = Math.min(size.y-30, self._height);
-                    
-                }
-                
-                curX = event.originalEvent.pageX;
-                curY = event.originalEvent.pageY;
-                self._render();
-            }
-            function onMouseUp(event) {
-                L.DomEvent.removeListener(self.map, "mouseup", onMouseUp);
-                L.DomEvent.removeListener(self.map, "mousemove", onMouseMove);
-                L.DomEvent.addListener(handle, "mousedown", onMouseDown);
-                self.fire("change");
-            }
-            
-            L.DomEvent.addListener(self.map, "mousemove", onMouseMove);
-            L.DomEvent.addListener(self.map, "mouseup", onMouseUp);
+    
+
+    _updateLocation: function(location){
+      var self = this;
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function(){
+        if (xhr.readyState === 4 && xhr.status === 200){
+          var data = JSON.parse(xhr.responseText);
+          self.map.fitBounds([
+            [data[0].boundingbox[0],data[0].boundingbox[2]],
+            [data[0].boundingbox[1],data[0].boundingbox[3]]
+          ]);
+          
         }
-        L.DomEvent.addListener(handle, "mousedown", onMouseDown);
+      };
+      xhr.open("GET", "http://nominatim.openstreetmap.org/search/?format=json&limit=1&q="+location, true);
+      xhr.send(null);
+    },
+
+    _onSearch: function(){
+      var form = document.forms[0];
+      var self = this;
+      
+      L.DomEvent.addListener(form, "submit", function(e){
+        L.DomEvent.preventDefault(e);
+        self._updateLocation(form.searchBox.value);
+        }, self);
+    },
+
+    _onReorientation: function(){
+      var form = document.getElementById("page-layout");
+      var self = this;
+      
+      L.DomEvent.addListener(form, "change", function(){
+        var selected = this["page-aspect-ratio"];
+        self._setOrientation(selected[selected.selectedIndex].value);
+      });
+    },
+
+    _onPaperSizeChange: function(){
+      var form = document.getElementById("page-layout");
+      var self = this;
+
+      L.DomEvent.addListener(form, "change", function(){
+        var selected = this["page-scale"];
+        self._setPaperSize(selected[selected.selectedIndex].value);
+      });
     },
     
     _onMapResize: function() {
@@ -463,6 +518,7 @@ L.PageComposer = L.Class.extend({
 
       var topBottomHeight = Math.round((size.y-this._height)/2);
       var leftRightWidth = Math.round((size.x-this._width)/2);
+      this.centerPosition = new L.Point(this.map.getCenter());
       this.nwPosition = new L.Point(leftRightWidth + this.offset.x, topBottomHeight + this.offset.y);
       this.nwLocation = this.map.containerPointToLatLng(this.nwPosition);
       this.bounds = this.getBounds();
@@ -485,63 +541,59 @@ L.PageComposer = L.Class.extend({
     },
     
     _render: function() {
+       
 
-        var size = this.map.getSize();
+      var size = this.map.getSize();
 
-        if (!this.nwPosition) {
-            this._calculateInitialPositions();
-        }
+      if (!this.nwPosition) {
+          this._calculateInitialPositions();
+      }
 
-        this._setDimensions();
+      this._setDimensions();
 
-        var nw = this.dimensions.nw,
-          ne = this.dimensions.ne,
-          sw = this.dimensions.sw,
-          se = this.dimensions.se,
-          width = this.dimensions.width,
-          height = this.dimensions.height,
-          rightWidth = size.x - width - nw.x,
-          bottomHeight = size.y - height - nw.y;
+      var nw = this.dimensions.nw,
+        ne = this.dimensions.ne,
+        sw = this.dimensions.sw,
+        se = this.dimensions.se,
+        width = this.dimensions.width,
+        height = this.dimensions.height,
+        rightWidth = size.x - width - nw.x,
+        bottomHeight = size.y - height - nw.y;
 
-        this._updatePageGridPosition(nw.x, nw.y, width, height);
+      this._updatePageGridPosition(nw.x, nw.y, width, height);
 
       // position shades
-      this._updateGridElement(this._topShade, {
-        width:size.x,
-        height:nw.y > 0 ? nw.y : 0,
-        top:0,
-        left:0
-      });
+      // this._updateGridElement(this._topShade, {
+      //   width:size.x,
+      //   height:nw.y > 0 ? nw.y : 0,
+      //   top:0,
+      //   left:0
+      // });
 
-      this._updateGridElement(this._bottomShade, {
-        width:size.x,
-        height: bottomHeight > 0 ? bottomHeight : 0,
-        bottom:0,
-        left:0
-      });
+      // this._updateGridElement(this._bottomShade, {
+      //   width:size.x,
+      //   height: bottomHeight > 0 ? bottomHeight : 0,
+      //   bottom:0,
+      //   left:0
+      // });
 
-      this._updateGridElement(this._leftShade, {
-          width: nw.x > 0 ? nw.x : 0,
-          height: height,
-          top: nw.y,
-          left: 0
-      });
+      // this._updateGridElement(this._leftShade, {
+      //     width: nw.x > 0 ? nw.x : 0,
+      //     height: height,
+      //     top: nw.y,
+      //     left: 0
+      // });
 
-      this._updateGridElement(this._rightShade, {
-          width: rightWidth > 0 ? rightWidth : 0,
-          height: height,
-          top: nw.y,
-          right: 0
-      });
+      // this._updateGridElement(this._rightShade, {
+      //     width: rightWidth > 0 ? rightWidth : 0,
+      //     height: height,
+      //     top: nw.y,
+      //     right: 0
+      // });
 
       // position handles
-      // this._updateGridElement(this._dragHandle, {left:nw.x, top:nw.y });
       this._updateGridElement(this._scaleHandle, {left:nw.x + width, top:nw.y + height});
 
-      // this._updateGridElement(this._rowModifier, {left:nw.x + (width / 2), top:nw.y + height});
-      // this._updateGridElement(this._colModifier, {left:nw.x + width, top:nw.y + (height/2)});
-        
-        
     },
 
 
@@ -549,16 +601,28 @@ L.PageComposer = L.Class.extend({
 
 
 var map = L.map('map', {
-    center: [40.712216, -74.22655],
+    center: [35.2048883, -92.4479108],
     zoom: 18,
     scrollWheelZoom: false
 });
+
+var southWest = L.latLng(40.712, -74.227),
+    northEast = L.latLng(40.774, -74.125),
+    bounds = L.latLngBounds(southWest, northEast);
+
+map.fitBounds([[33.004106,
+      -94.617812],
+      [36.4996,
+      -89.6422485]
+    ]);
 
 L.pageComposer = function(options) {
     return new L.PageComposer(options);
 };
 
 L.pageComposer().addTo(map);
+
+//L.pageComposer()._onSearch();
 
 
 //
@@ -567,14 +631,11 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
     maxZoom: 18,
     id: 'mapbox.streets',
-    accessToken: 'pk.eyJ1IjoibGluempheCIsImEiOiJjaWh6Y2hnZGIwNDkzdGxtMXJvMHVidzByIn0.Q1vAOjJ2H2pmJsxap7c2bQ'
+    accessToken: 'pk.eyJ1IjoibGluempheCIsImEiOiJjaWh6Y2hnZGIwNDkzdGxtMXJvMHVidzByIn0.Q1vAOjJ2H2pmJsxap7c2bQ',
+    name: '[name_en]'
     }).addTo(map);
 
-// var bounds = areaSelect.getBounds();
 
-// areaSelect.on("change", function(){
-//     console.log("Bounds:", this.getBounds());
-// });
 
 
 
